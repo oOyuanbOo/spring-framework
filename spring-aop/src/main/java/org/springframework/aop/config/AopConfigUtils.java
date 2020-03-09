@@ -72,7 +72,10 @@ public abstract class AopConfigUtils {
 	@Nullable
 	public static BeanDefinition registerAutoProxyCreatorIfNecessary(
 			BeanDefinitionRegistry registry, @Nullable Object source) {
-
+		// 注册InfrastructureAdvisorAutoProxyCreator类型的bean
+		// 这个bean是干嘛用的呢
+		// 这个类实现InstantiationAwareBeanPostProcessor，也就是说在Spring中，所有bean实例化时
+		// Spring都会保证调用其PostProcessAfterInitialization方法
 		return registerOrEscalateApcAsRequired(InfrastructureAdvisorAutoProxyCreator.class, registry, source);
 	}
 
@@ -120,15 +123,19 @@ public abstract class AopConfigUtils {
 
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 
+		// 如果已经存在了自动代理创建器且存在的自动代理创建器与现在的不一致，
+		// 那么需要根据优先级来判断到底需要使用哪一种
 		if (registry.containsBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME)) {
 			BeanDefinition apcDefinition = registry.getBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME);
 			if (!cls.getName().equals(apcDefinition.getBeanClassName())) {
 				int currentPriority = findPriorityForClass(apcDefinition.getBeanClassName());
 				int requiredPriority = findPriorityForClass(cls);
 				if (currentPriority < requiredPriority) {
+					// 改变bean最重要的就是改变bean所对应的className属性
 					apcDefinition.setBeanClassName(cls.getName());
 				}
 			}
+			// 如果已经存在自动代理创建器并且与将要创建的一致，那么无需再常见
 			return null;
 		}
 

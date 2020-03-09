@@ -221,6 +221,7 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 			// Resource pattern matching available.
 			try {
 				Resource[] resources = ((ResourcePatternResolver) resourceLoader).getResources(location);
+				// 这里再调用xml的处理类
 				int count = loadBeanDefinitions(resources);
 				if (actualResources != null) {
 					Collections.addAll(actualResources, resources);
@@ -238,6 +239,7 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 		else {
 			// Can only load single resources by absolute URL.
 			Resource resource = resourceLoader.getResource(location);
+			// 这里再调用xml的处理类
 			int count = loadBeanDefinitions(resource);
 			if (actualResources != null) {
 				actualResources.add(resource);

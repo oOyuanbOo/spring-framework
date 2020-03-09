@@ -35,6 +35,9 @@ import java.nio.file.StandardOpenOption;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+/**
+ * 对javas.io.File类型资源的封装，只要跟File打交道的，基本是与FileSystemResource也可以打交道
+ */
 
 /**
  * {@link Resource} implementation for {@code java.io.File} and

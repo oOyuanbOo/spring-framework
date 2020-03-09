@@ -65,7 +65,7 @@ public abstract class AbstractSingleBeanDefinitionParser extends AbstractBeanDef
 		if (parentName != null) {
 			builder.getRawBeanDefinition().setParentName(parentName);
 		}
-		Class<?> beanClass = getBeanClass(element);
+		Class<?> beanClass = getBeanClass(element); // tx:advice被解析成这个类 TransactionInterceptor.class
 		if (beanClass != null) {
 			builder.getRawBeanDefinition().setBeanClass(beanClass);
 		}

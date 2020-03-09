@@ -32,6 +32,9 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.core.NestedIOException;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ResourceUtils;
+/**
+ * 为Resource的接口的默认抽象实现，实现了Resource接口的大部分公共实现，是Resource接口的重中之重
+ */
 
 /**
  * Convenience base class for {@link Resource} implementations,

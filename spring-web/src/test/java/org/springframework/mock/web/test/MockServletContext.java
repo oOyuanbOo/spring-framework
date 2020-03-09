@@ -73,7 +73,7 @@ import org.springframework.web.util.WebUtils;
  * <p>For setting up a full {@code WebApplicationContext} in a test environment, you can
  * use {@code AnnotationConfigWebApplicationContext}, {@code XmlWebApplicationContext},
  * or {@code GenericWebApplicationContext}, passing in a corresponding
- * {@code MockServletContext} instance. Consider configuring your
+ * {@code MockServletContext} . Consider configuring your
  * {@code MockServletContext} with a {@code FileSystemResourceLoader} in order to
  * interpret resource paths as relative filesystem locations.
  *

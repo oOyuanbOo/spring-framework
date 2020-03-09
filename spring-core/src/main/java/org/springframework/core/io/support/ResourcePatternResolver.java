@@ -20,6 +20,10 @@ import java.io.IOException;
 
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+/**
+ * ResourceLoader只能加载一个path下的资源，这个类是升级版，可以根据匹配模式返回多个Resources
+ * 同时也新增了一种新的协议实例 classpath*:   看到没，已经找到熟人了
+ */
 
 /**
  * Strategy interface for resolving a location pattern (for example,

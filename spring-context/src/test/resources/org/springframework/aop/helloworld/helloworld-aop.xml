@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:aop="http://www.springframework.org/schema/aop"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+				http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop-2.0.xsd">
+	<bean id = "userServiceImpl" class="org.springframework.aop.helloworld.UserServceImpl"></bean>
+	<bean id = "orderServiceImpl" class="org.springframework.aop.helloworld.OrderServceImpl"></bean>
+
+	<!--定义两个advice 1. TODO: 在哪里获取advice，怎么让他zuo'yo-->
+	<bean id = "logArgsAdvice" class="org.springframework.aop.helloworld.LogArgsAdvice"></bean>
+	<bean id = "logResultAdvice" class="org.springframework.aop.helloworld.LogResultAdvice"></bean>
+
+	<bean id="userServiceProxy" class="org.springframework.aop.framework.ProxyFactoryBean">
+		<!--代理的接口-->
+		<property name="proxyInterfaces">
+			<list>
+				<value>org.springframework.aop.helloworld.UserService</value>
+			</list>
+		</property>
+		<!--代理的具体实现-->
+		<property name="target" ref="userServiceImpl"></property>
+
+		<!--配置拦截器，这里可以配置advice、advisor、interceptor，这里先介绍advice-->
+		<property name="interceptorNames">
+			<list>
+				<value>logArgsAdvice</value>
+				<value>logResultAdvice</value>
+			</list>
+		</property>
+	</bean>
+</beans>

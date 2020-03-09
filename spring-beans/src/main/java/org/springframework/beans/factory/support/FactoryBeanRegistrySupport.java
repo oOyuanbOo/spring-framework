@@ -94,25 +94,35 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 	 * @see org.springframework.beans.factory.FactoryBean#getObject()
 	 */
 	protected Object getObjectFromFactoryBean(FactoryBean<?> factory, String beanName, boolean shouldPostProcess) {
+		// 1 为单例且成品仓缓存中存在
 		if (factory.isSingleton() && containsSingleton(beanName)) {
 			synchronized (getSingletonMutex()) {
+				// 这里的cache是缓存FactoryBean创建的单例Bean对象的映射
+				// 从缓存中获取
 				Object object = this.factoryBeanObjectCache.get(beanName);
 				if (object == null) {
+					// 如果缓存里没有，则从FactoryBean中获取对象
 					object = doGetObjectFromFactoryBean(factory, beanName);
 					// Only post-process and store if not put there already during getObject() call above
 					// (e.g. because of circular reference processing triggered by custom getBean calls)
+					// 循环引用的缘故，还要从缓存中取一遍，没看明白   TODO
 					Object alreadyThere = this.factoryBeanObjectCache.get(beanName);
 					if (alreadyThere != null) {
 						object = alreadyThere;
 					}
 					else {
+						// 1. 3 需要后续处理
 						if (shouldPostProcess) {
+							// 若该Bean处于创建中，则返回非处理对象，这里指的不是半成品对象吧，应该是还没处理创建前后事件即post的对象
 							if (isSingletonCurrentlyInCreation(beanName)) {
 								// Temporarily return non-post-processed object, not storing it yet..
 								return object;
 							}
+							// 单例Bean的前置处理，用于添加标志，当前bean正处于创建中
 							beforeSingletonCreation(beanName);
 							try {
+								// 对从FactoryBean获取的对象进行后处理
+								// 生成的对象传给bean引用
 								object = postProcessObjectFromFactoryBean(object, beanName);
 							}
 							catch (Throwable ex) {
@@ -120,9 +130,11 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 										"Post-processing of FactoryBean's singleton object failed", ex);
 							}
 							finally {
+								// 单例Bean的后置处理，用于移除标记，当前Bean不处于创建中
 								afterSingletonCreation(beanName);
 							}
 						}
+						// 1.4 添加到Factory生成bean指定缓存中
 						if (containsSingleton(beanName)) {
 							this.factoryBeanObjectCache.put(beanName, object);
 						}
@@ -132,9 +144,13 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 			}
 		}
 		else {
+			// 为空，则从FactoryBean中获取对象
 			Object object = doGetObjectFromFactoryBean(factory, beanName);
+			// 需要后续处理
 			if (shouldPostProcess) {
 				try {
+					// 对从FactoryBean获取的对象进行后处理
+					// 生成的对象暴露给bean引用
 					object = postProcessObjectFromFactoryBean(object, beanName);
 				}
 				catch (Throwable ex) {

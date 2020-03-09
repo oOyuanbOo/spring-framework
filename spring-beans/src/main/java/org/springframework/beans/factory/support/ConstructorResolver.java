@@ -641,6 +641,7 @@ class ConstructorResolver {
 			@Nullable Object factoryBean, Method factoryMethod, Object[] args) {
 
 		try {
+			// 设置Method可访问
 			if (System.getSecurityManager() != null) {
 				return AccessController.doPrivileged((PrivilegedAction<Object>) () ->
 						this.beanFactory.getInstantiationStrategy().instantiate(

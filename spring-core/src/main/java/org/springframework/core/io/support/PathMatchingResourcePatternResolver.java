@@ -54,6 +54,10 @@ import org.springframework.util.PathMatcher;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
+/**
+ * 这是ResourceLoader的增强版的加强版，除了支持ResourceLoader和ResourcePatternResolver新增的 classpath*:前缀外
+ * 还支持Ant风格的路径匹配模式   类似于 '**//*.xml 牛批  又是半熟不熟的熟人
+ */
 
 /**
  * A {@link ResourcePatternResolver} implementation that is able to resolve a
@@ -181,7 +185,7 @@ import org.springframework.util.StringUtils;
  * @see ClassLoader#getResources(String)
  */
 public class PathMatchingResourcePatternResolver implements ResourcePatternResolver {
-
+/**/
 	private static final Log logger = LogFactory.getLog(PathMatchingResourcePatternResolver.class);
 
 	@Nullable
@@ -274,6 +278,13 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 		return getResourceLoader().getResource(location);
 	}
 
+	/**
+	 * 处理逻辑如下，非"classpath*："卡开头，且路径不包含通配符，直接委托给相应的ResourceLoader处理
+	 * 其他情况调用findPathMatchingResources  findAllClassPathResources方法，返回多个Resource
+	 * @param locationPattern the location pattern to resolve
+	 * @return
+	 * @throws IOException
+	 */
 	@Override
 	public Resource[] getResources(String locationPattern) throws IOException {
 		Assert.notNull(locationPattern, "Location pattern must not be null");
@@ -335,11 +346,14 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	protected Set<Resource> doFindAllClassPathResources(String path) throws IOException {
 		Set<Resource> result = new LinkedHashSet<>(16);
 		ClassLoader cl = getClassLoader();
+		// 根据ClassLoader加载路径下的所有资源
 		Enumeration<URL> resourceUrls = (cl != null ? cl.getResources(path) : ClassLoader.getSystemResources(path));
 		while (resourceUrls.hasMoreElements()) {
 			URL url = resourceUrls.nextElement();
+			// 将URL转换成UrlResource
 			result.add(convertClassLoaderURL(url));
 		}
+		// 加载路径下的所有jar包
 		if ("".equals(path)) {
 			// The above result is likely to be incomplete, i.e. only containing file system references.
 			// We need to have pointers to each of the jar files on the classpath as well...
@@ -476,7 +490,9 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 			return false;
 		}
 	}
-
+	/**
+	 * 当locationPattern中包含了通配符，则调用该方法进行资源加载。
+	 */
 	/**
 	 * Find all resources that match the given location pattern via the
 	 * Ant-style PathMatcher. Supports resources in jar files and zip files
@@ -489,13 +505,16 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	 * @see org.springframework.util.PathMatcher
 	 */
 	protected Resource[] findPathMatchingResources(String locationPattern) throws IOException {
+		// 确定根路径，子路径
 		String rootDirPath = determineRootDir(locationPattern);
 		String subPattern = locationPattern.substring(rootDirPath.length());
+		// 获取根路径下的资源
 		Resource[] rootDirResources = getResources(rootDirPath);
 		Set<Resource> result = new LinkedHashSet<>(16);
 		for (Resource rootDirResource : rootDirResources) {
 			rootDirResource = resolveRootDirResource(rootDirResource);
 			URL rootDirUrl = rootDirResource.getURL();
+			// bundle资源类型
 			if (equinoxResolveMethod != null && rootDirUrl.getProtocol().startsWith("bundle")) {
 				URL resolvedUrl = (URL) ReflectionUtils.invokeMethod(equinoxResolveMethod, null, rootDirUrl);
 				if (resolvedUrl != null) {
@@ -503,12 +522,15 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 				}
 				rootDirResource = new UrlResource(rootDirUrl);
 			}
+			// vfs资源类型
 			if (rootDirUrl.getProtocol().startsWith(ResourceUtils.URL_PROTOCOL_VFS)) {
 				result.addAll(VfsResourceMatchingDelegate.findMatchingResources(rootDirUrl, subPattern, getPathMatcher()));
 			}
+			// jar 资源类型
 			else if (ResourceUtils.isJarURL(rootDirUrl) || isJarResource(rootDirResource)) {
 				result.addAll(doFindPathMatchingJarResources(rootDirResource, rootDirUrl, subPattern));
 			}
+			// 其他资源类型
 			else {
 				result.addAll(doFindPathMatchingFileResources(rootDirResource, subPattern));
 			}
@@ -516,6 +538,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 		if (logger.isTraceEnabled()) {
 			logger.trace("Resolved location pattern [" + locationPattern + "] to resources " + result);
 		}
+		// 转换成Resource数组返回
 		return result.toArray(new Resource[0]);
 	}
 

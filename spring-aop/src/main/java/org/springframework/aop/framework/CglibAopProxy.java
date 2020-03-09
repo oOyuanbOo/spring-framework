@@ -174,9 +174,11 @@ class CglibAopProxy implements AopProxy, Serializable {
 				}
 			}
 
+			// 验证Class
 			// Validate the class, writing log messages as necessary.
 			validateClassIfNecessary(proxySuperClass, classLoader);
 
+			// 创建及配置Enhancer
 			// Configure CGLIB Enhancer...
 			Enhancer enhancer = createEnhancer();
 			if (classLoader != null) {
@@ -191,6 +193,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 			enhancer.setNamingPolicy(SpringNamingPolicy.INSTANCE);
 			enhancer.setStrategy(new ClassLoaderAwareGeneratorStrategy(classLoader));
 
+			// 设置拦截器
 			Callback[] callbacks = getCallbacks(rootClass);
 			Class<?>[] types = new Class<?>[callbacks.length];
 			for (int x = 0; x < types.length; x++) {

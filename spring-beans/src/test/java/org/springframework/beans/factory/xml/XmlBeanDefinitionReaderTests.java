@@ -42,6 +42,23 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class XmlBeanDefinitionReaderTests {
 
 	@Test
+	public void letIoCstart() {
+		// 根据xml配置文件创建Resource资源对象
+		ClassPathResource resource = new ClassPathResource("testCircle.xml", getClass());
+//		ClassPathResource resource = new ClassPathResource("test.xml", getClass());
+
+		// 创建一个BeanFactory，DefaultListable是整个IoC的始祖
+		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
+		// 创建XmlBeanDefinitionReader读取器，用于载入BeanDefinition
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(factory);
+		// 开始BeanDefinition的载入和注册过程，完成后的BeanDefinition放在IoC容器中
+		reader.loadBeanDefinitions(resource);
+		factory.getBean("testA");
+//		factory.getBean("testA");
+	}
+
+
+	@Test
 	public void setParserClassSunnyDay() {
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
 		new XmlBeanDefinitionReader(registry).setDocumentReaderClass(DefaultBeanDefinitionDocumentReader.class);

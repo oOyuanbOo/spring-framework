@@ -62,17 +62,24 @@ public class ContextLoaderTests {
 
 	@Test
 	public void testContextLoaderListenerWithDefaultContext() {
+		// 创建一个mock的ServletContext
 		MockServletContext sc = new MockServletContext("");
+		// contextConfigLocation 就是上下文配置参数
 		sc.addInitParameter(ContextLoader.CONFIG_LOCATION_PARAM,
 				"/org/springframework/web/context/WEB-INF/applicationContext.xml " +
 				"/org/springframework/web/context/WEB-INF/context-addition.xml");
+		// 监听器
 		ServletContextListener listener = new ContextLoaderListener();
+		// ServletContextEvent的事件
 		ServletContextEvent event = new ServletContextEvent(sc);
+		// 手动触发
 		listener.contextInitialized(event);
+		// 获取已经启动好的根容器，即Spring的容器
 		String contextAttr = WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE;
 		WebApplicationContext context = (WebApplicationContext) sc.getAttribute(contextAttr);
 		boolean condition1 = context instanceof XmlWebApplicationContext;
 		assertThat(condition1).as("Correct WebApplicationContext exposed in ServletContext").isTrue();
+		// 默认是XmlWebApplicationContext类型的容器
 		assertThat(WebApplicationContextUtils.getRequiredWebApplicationContext(sc) instanceof XmlWebApplicationContext).isTrue();
 		LifecycleBean lb = (LifecycleBean) context.getBean("lifecycle");
 		assertThat(context.containsBean("father")).as("Has father").isTrue();
@@ -82,6 +89,7 @@ public class ContextLoaderTests {
 		assertThat(condition).as("Not destroyed").isTrue();
 		assertThat(context.containsBean("beans1.bean1")).isFalse();
 		assertThat(context.containsBean("beans1.bean2")).isFalse();
+		// 模拟web容器关闭
 		listener.contextDestroyed(event);
 		assertThat(lb.isDestroyed()).as("Destroyed").isTrue();
 		assertThat(sc.getAttribute(contextAttr)).isNull();

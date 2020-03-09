@@ -215,6 +215,8 @@ public class SimpleAliasRegistry implements AliasRegistry {
 		String canonicalName = name;
 		// Handle aliasing...
 		String resolvedName;
+		// 主要是一个循环获取beanName的过程，例如别名A指向名称为B的bean，则返回B
+		// 若别名A指向别名B，别名B指向名称为C的Bean，则返回C
 		do {
 			resolvedName = this.aliasMap.get(canonicalName);
 			if (resolvedName != null) {

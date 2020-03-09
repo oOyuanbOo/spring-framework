@@ -55,21 +55,29 @@ import org.springframework.web.util.UrlPathHelper;
  */
 public final class RequestMappingInfo implements RequestCondition<RequestMappingInfo> {
 
+	/** 名字 */
 	@Nullable
 	private final String name;
 
+	/** 请求方法的条件 */
 	private final PatternsRequestCondition patternsCondition;
 
+	/** 请求方法的条件 */
 	private final RequestMethodsRequestCondition methodsCondition;
 
+	/** 参数的条件  */
 	private final ParamsRequestCondition paramsCondition;
 
+	/** 请求头的条件 */
 	private final HeadersRequestCondition headersCondition;
 
+	/** 可消费的Content-Type的条件 */
 	private final ConsumesRequestCondition consumesCondition;
 
+	/** 可生产的Content-type的条件*/
 	private final ProducesRequestCondition producesCondition;
 
+	/** 自定义的条件 */
 	private final RequestConditionHolder customConditionHolder;
 
 
@@ -217,6 +225,8 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 	@Override
 	@Nullable
 	public RequestMappingInfo getMatchingCondition(HttpServletRequest request) {
+		// 匹配methodsCondition、paramsCondition、headersCondition等等condition
+		// 如果任一为空，则返回null，表示匹配失败
 		RequestMethodsRequestCondition methods = this.methodsCondition.getMatchingCondition(request);
 		if (methods == null) {
 			return null;
@@ -246,6 +256,9 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 			return null;
 		}
 
+		// 创建匹配的RequestMappingInfo对象
+		// 为什么要创建RequestMappingInfo对象，因为当前RequestMappingInfo对象，一个methodsCondition可以配置
+		// GET POST DELETE等等条件，但是实际就匹配一个请求类型，此时methods只代表其匹配的那个
 		return new RequestMappingInfo(this.name, patterns,
 				methods, params, headers, consumes, produces, custom.getCondition());
 	}
@@ -255,11 +268,14 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 	 * <p>Note: It is assumed both instances have been obtained via
 	 * {@link #getMatchingCondition(HttpServletRequest)} to ensure they have conditions with
 	 * content relevant to current request.
+	 *
+	 * 实际上都是按照优先级，逐个调用每个属性对应的compareTo方法，直到比到不相等
 	 */
 	@Override
 	public int compareTo(RequestMappingInfo other, HttpServletRequest request) {
 		int result;
 		// Automatic vs explicit HTTP HEAD mapping
+		// 针对HEAD请求方法，特殊处理
 		if (HttpMethod.HEAD.matches(request.getMethod())) {
 			result = this.methodsCondition.compareTo(other.getMethodsCondition(), request);
 			if (result != 0) {

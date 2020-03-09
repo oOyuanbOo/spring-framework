@@ -29,6 +29,9 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
+/**
+ * ResourceLoader的默认实现
+ */
 
 /**
  * Default implementation of the {@link ResourceLoader} interface.
@@ -60,6 +63,9 @@ public class DefaultResourceLoader implements ResourceLoader {
 	 * <p>ClassLoader access will happen using the thread context class loader
 	 * at the time of this ResourceLoader's initialization.
 	 * @see java.lang.Thread#getContextClassLoader()
+	 */
+	/**
+	 * 默认的是Thread.currentThread().getContextClassLoader()
 	 */
 	public DefaultResourceLoader() {
 		this.classLoader = ClassUtils.getDefaultClassLoader();
@@ -143,21 +149,23 @@ public class DefaultResourceLoader implements ResourceLoader {
 	@Override
 	public Resource getResource(String location) {
 		Assert.notNull(location, "Location must not be null");
-
+		// 通过ProtocolResolver（这是用户自定义的协议资源解决策略）来加载资源
 		for (ProtocolResolver protocolResolver : getProtocolResolvers()) {
 			Resource resource = protocolResolver.resolve(location, this);
 			if (resource != null) {
 				return resource;
 			}
 		}
-
+		// 以/开头，返回ClassPathContextResource类型的资源
 		if (location.startsWith("/")) {
 			return getResourceByPath(location);
 		}
+		// 以classpath: 开头，返回ClassPathResource类型的资源
 		else if (location.startsWith(CLASSPATH_URL_PREFIX)) {
 			return new ClassPathResource(location.substring(CLASSPATH_URL_PREFIX.length()), getClassLoader());
 		}
 		else {
+			// 根据是否为文件URL，实则返回FileUrlResource类型的资源
 			try {
 				// Try to parse the location as a URL...
 				URL url = new URL(location);

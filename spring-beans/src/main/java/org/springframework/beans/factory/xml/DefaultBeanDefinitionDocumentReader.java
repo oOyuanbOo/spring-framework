@@ -93,6 +93,8 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	@Override
 	public void registerBeanDefinitions(Document doc, XmlReaderContext readerContext) {
 		this.readerContext = readerContext;
+		// 获得XML Document Root Element
+		// 执行注册 BeanDefinition
 		doRegisterBeanDefinitions(doc.getDocumentElement());
 	}
 
@@ -125,16 +127,22 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		// the new (child) delegate with a reference to the parent for fallback purposes,
 		// then ultimately reset this.delegate back to its original (parent) reference.
 		// this behavior emulates a stack of delegates without actually necessitating one.
-		BeanDefinitionParserDelegate parent = this.delegate;
-		this.delegate = createDelegate(getReaderContext(), root, parent);
 
+		// 记录老的BeanDefinitionParserDelegate对象
+		BeanDefinitionParserDelegate parent = this.delegate;
+		// 创建delegate对象，这个对象的功能是用来解析xml节点
+		this.delegate = createDelegate(getReaderContext(), root, parent);
+		// root 的namespace是否等于"http://www.springframework.org/schema/beans"
 		if (this.delegate.isDefaultNamespace(root)) {
+			// 处理profile属性
 			String profileSpec = root.getAttribute(PROFILE_ATTRIBUTE);
 			if (StringUtils.hasText(profileSpec)) {
+				// 使用分隔符切分，可能有多个profile
 				String[] specifiedProfiles = StringUtils.tokenizeToStringArray(
 						profileSpec, BeanDefinitionParserDelegate.MULTI_VALUE_ATTRIBUTE_DELIMITERS);
 				// We cannot use Profiles.of(...) since profile expressions are not supported
 				// in XML config. See SPR-12458 for details.
+				// 如果所有profile都无效，则不进行注册
 				if (!getReaderContext().getEnvironment().acceptsProfiles(specifiedProfiles)) {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Skipped XML bean definition file due to specified profiles [" + profileSpec +
@@ -144,11 +152,13 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 				}
 			}
 		}
-
+		// 解析前处理
 		preProcessXml(root);
+		// 解析，这里会有个递归，解析这种嵌套标签都是这个思路
 		parseBeanDefinitions(root, this.delegate);
+		// 解析后处理
 		postProcessXml(root);
-
+		// 设置delegat回老的BeanDefinitionParser对象
 		this.delegate = parent;
 	}
 
@@ -166,27 +176,35 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	 * @param root the DOM root element of the document
 	 */
 	protected void parseBeanDefinitions(Element root, BeanDefinitionParserDelegate delegate) {
+		// 1. 如果根节点使用默认命名空间，执行默认解析
 		if (delegate.isDefaultNamespace(root)) {
+			// 遍历子节点
 			NodeList nl = root.getChildNodes();
 			for (int i = 0; i < nl.getLength(); i++) {
 				Node node = nl.item(i);
 				if (node instanceof Element) {
 					Element ele = (Element) node;
+					// 1.1 如果该节点使用默认命名空间，为空或等于"http://www.springframework.org/schema/beans"
+					// 这里主要解析bean标签
 					if (delegate.isDefaultNamespace(ele)) {
 						parseDefaultElement(ele, delegate);
 					}
+					// 1.2 如果该节点非默认命名空间，执行自定义解析
+					// 这里会解析很多的自定义标签，如事务，jms，缓存，mvc等
 					else {
 						delegate.parseCustomElement(ele);
 					}
 				}
 			}
 		}
+		// 2. 如果根节点或子节点不使用默认命名空间，用自定义解析的方法
 		else {
 			delegate.parseCustomElement(root);
 		}
 	}
 
 	private void parseDefaultElement(Element ele, BeanDefinitionParserDelegate delegate) {
+		// import 标签   一个xml文件太大的话，可以采用import标签分某块
 		if (delegate.nodeNameEquals(ele, IMPORT_ELEMENT)) {
 			importBeanDefinitionResource(ele);
 		}
@@ -194,10 +212,12 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 			processAliasRegistration(ele);
 		}
 		else if (delegate.nodeNameEquals(ele, BEAN_ELEMENT)) {
+			// 处理bean标签， 主要是创建注册BeanDefinition
 			processBeanDefinition(ele, delegate);
 		}
+		// 针对嵌套bean的处理
 		else if (delegate.nodeNameEquals(ele, NESTED_BEANS_ELEMENT)) {
-			// recurse
+			// recurse  递归
 			doRegisterBeanDefinitions(ele);
 		}
 	}
@@ -206,14 +226,19 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	 * Parse an "import" element and load the bean definitions
 	 * from the given resource into the bean factory.
 	 */
+	/**
+	 * 一个解析import的模块居然那么长，盲猜里面有递归，解析xml就是递归多
+	 * @param ele
+	 */
 	protected void importBeanDefinitionResource(Element ele) {
+		// 1. 获取source属性的值，该值表示资源的路径
 		String location = ele.getAttribute(RESOURCE_ATTRIBUTE);
 		if (!StringUtils.hasText(location)) {
 			getReaderContext().error("Resource location must not be empty", ele);
 			return;
 		}
 
-		// Resolve system properties: e.g. "${user.dir}"
+		// 2. Resolve system properties: e.g. "${user.dir}"  解析环境变量
 		location = getReaderContext().getEnvironment().resolveRequiredPlaceholders(location);
 
 		Set<Resource> actualResources = new LinkedHashSet<>(4);
@@ -221,6 +246,11 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		// Discover whether the location is an absolute or relative URI
 		boolean absoluteLocation = false;
 		try {
+			//3  Absolute or relative?   判断是相对还是绝对路径
+			// 判断绝对路径的规则如下：
+			// i 以classpath*：或者classpath：开头的
+			// ii. 能够通过该location构建出java.net.URL为绝对路径
+			// iii. 根据location构造java.net.URI判断调用isAbsolute方法，判断是否为绝对路径
 			absoluteLocation = ResourcePatternUtils.isUrl(location) || ResourceUtils.toURI(location).isAbsolute();
 		}
 		catch (URISyntaxException ex) {
@@ -228,9 +258,10 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 			// unless it is the well-known Spring prefix "classpath*:"
 		}
 
-		// Absolute or relative?
+		// 4. 如果是绝对路径，递归调用Bean的解析过程
 		if (absoluteLocation) {
 			try {
+				// mybatis中，全能类Configuration贯穿始终，是大部分功能类的成员变量，这里getReaderContext()也是一个道理
 				int importCount = getReaderContext().getReader().loadBeanDefinitions(location, actualResources);
 				if (logger.isTraceEnabled()) {
 					logger.trace("Imported " + importCount + " bean definitions from URL location [" + location + "]");
@@ -241,6 +272,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 						"Failed to import bean definitions from URL location [" + location + "]", ele, ex);
 			}
 		}
+		// 5. 如果是相对路径，则先计算出绝对路径再解析
 		else {
 			// No URL -> considering resource location as relative to the current file.
 			try {
@@ -268,6 +300,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 			}
 		}
 		Resource[] actResArray = actualResources.toArray(new Resource[0]);
+		// 6. 通知监听器，完成解析
 		getReaderContext().fireImportProcessed(location, actResArray, extractSource(ele));
 	}
 
@@ -303,11 +336,15 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	 * and registering it with the registry.
 	 */
 	protected void processBeanDefinition(Element ele, BeanDefinitionParserDelegate delegate) {
+		// 创建BeanDefinition，与别名和beanName一起整合到holder里返回，这种写法要学习下，工具箱
 		BeanDefinitionHolder bdHolder = delegate.parseBeanDefinitionElement(ele);
 		if (bdHolder != null) {
+			// 处理bean里面namespace相关的东西，bean咋还有namespace呢  ？？
+			// 解析自定义标签
 			bdHolder = delegate.decorateBeanDefinitionIfRequired(ele, bdHolder);
 			try {
 				// Register the final decorated instance.
+				// 注册bean的name和alias到容器里
 				BeanDefinitionReaderUtils.registerBeanDefinition(bdHolder, getReaderContext().getRegistry());
 			}
 			catch (BeanDefinitionStoreException ex) {
@@ -315,6 +352,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 						bdHolder.getBeanName() + "'", ele, ex);
 			}
 			// Send registration event.
+			// 发送注册事件，这是个监听器模式，还没用过监听？
 			getReaderContext().fireComponentRegistered(new BeanComponentDefinition(bdHolder));
 		}
 	}

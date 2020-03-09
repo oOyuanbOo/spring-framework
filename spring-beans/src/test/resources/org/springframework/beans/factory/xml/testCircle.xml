@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN" "https://www.springframework.org/dtd/spring-beans-2.0.dtd">
+
+<beans>
+
+	<bean id="testA" class="org.springframework.tests.sample.beans.TestA">
+<!--		<property name="testB"><ref bean="testB"/></property>-->
+		<constructor-arg index = "0" ref="testB"/>
+	</bean>
+
+	<bean id="testB" class="org.springframework.tests.sample.beans.TestB">
+<!--		<property name="testA"><ref bean="testA"/></property>-->
+		<constructor-arg index = "0" ref="testA"/>
+	</bean>
+
+</beans>

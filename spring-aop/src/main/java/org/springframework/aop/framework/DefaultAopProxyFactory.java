@@ -48,12 +48,16 @@ public class DefaultAopProxyFactory implements AopProxyFactory, Serializable {
 
 	@Override
 	public AopProxy createAopProxy(AdvisedSupport config) throws AopConfigException {
-		if (config.isOptimize() || config.isProxyTargetClass() || hasNoUserSuppliedProxyInterfaces(config)) {
+		if (config.isOptimize() ||  // 这个属于cglib的一个属性，是否使用激进的优化策略
+				config.isProxyTargetClass() ||  // 这个属性为true时，目标类本身被代理而不是目标类的接口，将会用cglib创建，设置方式<aop:aspectj-autoproxy proxy-target-class="true">
+				hasNoUserSuppliedProxyInterfaces(config) // 是否存在代理接口
+		) {
 			Class<?> targetClass = config.getTargetClass();
 			if (targetClass == null) {
 				throw new AopConfigException("TargetSource cannot determine target class: " +
 						"Either an interface or a target is required for proxy creation.");
 			}
+			// 如果是接口就使用jdk动态代理，否则用cglib
 			if (targetClass.isInterface() || Proxy.isProxyClass(targetClass)) {
 				return new JdkDynamicAopProxy(config);
 			}

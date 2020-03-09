@@ -60,6 +60,9 @@ public class TxNamespaceHandlerTests {
 		assertThat(AopUtils.isAopProxy(bean)).as("testBean is not a proxy").isTrue();
 	}
 
+	/**
+	 *
+	 */
 	@Test
 	public void invokeTransactional() {
 		ITestBean testBean = getTestBean();
@@ -81,6 +84,17 @@ public class TxNamespaceHandlerTests {
 				testBean.exceptional(new IllegalArgumentException("foo")));
 		assertThat(ptm.begun).as("Should have another started transaction").isEqualTo(2);
 		assertThat(ptm.rollbacks).as("Should have 1 rolled back transaction").isEqualTo(1);
+	}
+
+	// yb add
+	@Test
+	public void invokeTransactional2(){
+		ITestBean bean = getTestBean2();
+		bean.returnsThis();
+	}
+	// yb add
+	private ITestBean getTestBean2(){
+		return context.getBean(TestBean2.class);
 	}
 
 	@Test

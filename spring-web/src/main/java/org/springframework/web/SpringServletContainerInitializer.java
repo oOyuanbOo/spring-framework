@@ -142,8 +142,10 @@ public class SpringServletContainerInitializer implements ServletContainerInitia
 	public void onStartup(@Nullable Set<Class<?>> webAppInitializerClasses, ServletContext servletContext)
 			throws ServletException {
 
+		// WebApplicationInitializer类便是spring用来初始化web环境的委托者类
 		List<WebApplicationInitializer> initializers = new LinkedList<>();
 
+		// 1
 		if (webAppInitializerClasses != null) {
 			for (Class<?> waiClass : webAppInitializerClasses) {
 				// Be defensive: Some servlet containers provide us with invalid classes,
@@ -168,6 +170,7 @@ public class SpringServletContainerInitializer implements ServletContainerInitia
 
 		servletContext.log(initializers.size() + " Spring WebApplicationInitializers detected on classpath");
 		AnnotationAwareOrderComparator.sort(initializers);
+		// 2
 		for (WebApplicationInitializer initializer : initializers) {
 			initializer.onStartup(servletContext);
 		}

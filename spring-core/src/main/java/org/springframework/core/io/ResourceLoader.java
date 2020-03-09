@@ -18,6 +18,10 @@ package org.springframework.core.io;
 
 import org.springframework.lang.Nullable;
 import org.springframework.util.ResourceUtils;
+/**
+ * 为Spring资源加载的统一抽象，具体的资源加载则由相应的实现类来完成，所以我们可以将ResourceLoader称为统一资源定位器。
+ * 主要应用根据给定的资源文件地址，返回对应的Resource
+ */
 
 /**
  * Strategy interface for loading resources (e.. class path or file system

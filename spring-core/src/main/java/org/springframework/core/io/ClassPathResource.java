@@ -26,6 +26,9 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+/**
+ * class path类型资源的实现。使用给定的ClassLoader或者给定的Class加载资源
+ */
 
 /**
  * {@link Resource} implementation for class path resources. Uses either a

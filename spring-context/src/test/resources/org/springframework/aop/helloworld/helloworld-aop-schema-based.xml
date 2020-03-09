@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:aop="http://www.springframework.org/schema/aop"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+				http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop-2.0.xsd">
+	<bean id = "userServiceImpl" class="org.springframework.aop.helloworld.UserServceImpl"></bean>
+	<bean id = "orderServiceImpl" class="org.springframework.aop.helloworld.OrderServceImpl"></bean>
+
+	<!--定义两个advice-->
+	<bean id = "logArgsAspect" class="org.springframework.aop.helloworld.aspectj.LogArgsAdviceWithAnnotation"></bean>
+	<bean id = "logResultAspect" class="org.springframework.aop.helloworld.aspectj.LogResultAdviceWithAnnotation"></bean>
+
+	<!--aop:config-->
+	<aop:config>
+		<!--下面这两个Ponitcut是全局的，可以被所有的Aspect使用-->
+		<!--这里示意了两种Pointcut的配置-->
+		<aop:pointcut id="logResultPointcut" expression="org.springframework.aop.helloworld.aspectj.SystemArchitecture.businessService()"/>
+		<aop:aspect ref="logArgsAspect">
+			<aop:pointcut id="internalPointcut" expression="org.springframework.aop.helloworld.aspectj.SystemArchitecture.businessService()"/>
+			<aop:before method="before" pointcut-ref="internalPointcut"/>
+		</aop:aspect>
+
+		<aop:aspect ref="logResultAspect">
+			<aop:after-returning method="afterReturning" returning="result" pointcut-ref="logResultPointcut"></aop:after-returning>
+		</aop:aspect>
+	</aop:config>
+</beans>

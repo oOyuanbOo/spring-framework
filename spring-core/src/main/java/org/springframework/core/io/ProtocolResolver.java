@@ -17,6 +17,9 @@
 package org.springframework.core.io;
 
 import org.springframework.lang.Nullable;
+/**
+ * 用户自定义协议资源解决策略，不需要继承ResourceLoader的子类，它是在DefaultResourceLoader的addProtocolResolvor方法里添加的
+ */
 
 /**
  * A resolution strategy for protocol-specific resource handles.

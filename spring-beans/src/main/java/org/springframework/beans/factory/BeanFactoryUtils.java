@@ -83,6 +83,7 @@ public abstract class BeanFactoryUtils {
 		if (!name.startsWith(BeanFactory.FACTORY_BEAN_PREFIX)) {
 			return name;
 		}
+		// computeIfAbsent  存在就返回，不存在就计算后存入缓存，这里缓存了转换后的名字，方便下次用
 		return transformedBeanNameCache.computeIfAbsent(name, beanName -> {
 			do {
 				beanName = beanName.substring(BeanFactory.FACTORY_BEAN_PREFIX.length());

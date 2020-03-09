@@ -227,6 +227,7 @@ public abstract class AopUtils {
 			return false;
 		}
 
+		// 事务部分，此时的pc表示TransactionAttributeSourcePointCut
 		MethodMatcher methodMatcher = pc.getMethodMatcher();
 		if (methodMatcher == MethodMatcher.TRUE) {
 			// No need to iterate the methods if we're matching any method anyway...
@@ -242,6 +243,9 @@ public abstract class AopUtils {
 		if (!Proxy.isProxyClass(targetClass)) {
 			classes.add(ClassUtils.getUserClass(targetClass));
 		}
+		// 首先获取类的所有接口并连同类本身一起遍历
+		// 遍历过程中又对类中的方法再次遍历，一旦匹配成功边认为这个类
+		// 适用于当前增强器
 		classes.addAll(ClassUtils.getAllInterfacesForClassAsSet(targetClass));
 
 		for (Class<?> clazz : classes) {
@@ -284,8 +288,11 @@ public abstract class AopUtils {
 		if (advisor instanceof IntroductionAdvisor) {
 			return ((IntroductionAdvisor) advisor).getClassFilter().matches(targetClass);
 		}
+		// 事务那边我们注册的BeanFactoryTransacitonAttributeSourceAdvisor
+		// 就是PointcutAdvisor的一个实现
 		else if (advisor instanceof PointcutAdvisor) {
 			PointcutAdvisor pca = (PointcutAdvisor) advisor;
+			// 事务那边我们getPointcut返回的是TransactionAttributeSourcePointcut
 			return canApply(pca.getPointcut(), targetClass, hasIntroductions);
 		}
 		else {
@@ -307,6 +314,7 @@ public abstract class AopUtils {
 			return candidateAdvisors;
 		}
 		List<Advisor> eligibleAdvisors = new ArrayList<>();
+		// 首先处理引介增强
 		for (Advisor candidate : candidateAdvisors) {
 			if (candidate instanceof IntroductionAdvisor && canApply(candidate, clazz)) {
 				eligibleAdvisors.add(candidate);
@@ -318,6 +326,7 @@ public abstract class AopUtils {
 				// already processed
 				continue;
 			}
+			// 对于普通bean的处理
 			if (canApply(candidate, clazz, hasIntroductions)) {
 				eligibleAdvisors.add(candidate);
 			}

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:aop="http://www.springframework.org/schema/aop"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+				http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop-2.0.xsd">
+	<bean id = "userServiceImpl" class="org.springframework.aop.helloworld.UserServceImpl"></bean>
+	<bean id = "orderServiceImpl" class="org.springframework.aop.helloworld.OrderServceImpl"></bean>
+
+	<!--定义两个advice-->
+	<bean id = "logArgsAdvice" class="org.springframework.aop.helloworld.LogArgsAdvice"></bean>
+	<bean id = "logResultAdvice" class="org.springframework.aop.helloworld.LogResultAdvice"></bean>
+
+	<!--定义一个只拦截queryUser方法的advisor-->
+	<bean id="logCreateAdvisor" class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
+		<!--advisor实例内部会有一个advice-->
+		<property name="advice" ref="logArgsAdvice"></property>
+		<!--只有下面这个方法会被拦截-->
+		<property name="pattern" value="org.springframework.aop.helloworld.*.create.*"></property>
+	</bean>
+
+	<bean id="logResultAdvisor" class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
+		<!--advisor实例内部会有一个advice-->
+		<property name="advice" ref="logResultAdvice"></property>
+		<!--只有下面这个方法会被拦截-->
+		<property name="pattern" value="org.springframework.aop.helloworld.*.query.*"></property>
+	</bean>
+
+	<!--DefaultAdvisorAutoProxyCreator 让ioc容器中所有的advisor来匹配方法-->
+	<bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"></bean>
+</beans>

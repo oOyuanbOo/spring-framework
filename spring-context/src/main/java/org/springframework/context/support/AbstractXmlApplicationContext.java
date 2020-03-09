@@ -80,17 +80,21 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 	@Override
 	protected void loadBeanDefinitions(DefaultListableBeanFactory beanFactory) throws BeansException, IOException {
 		// Create a new XmlBeanDefinitionReader for the given BeanFactory.
+		// 创建XmlBeanDefinitionReader对象
 		XmlBeanDefinitionReader beanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
 
 		// Configure the bean definition reader with this context's
 		// resource loading environment.
+		// 对XmlBeanDefinitionReader进行环境变量的设置
 		beanDefinitionReader.setEnvironment(this.getEnvironment());
 		beanDefinitionReader.setResourceLoader(this);
 		beanDefinitionReader.setEntityResolver(new ResourceEntityResolver(this));
 
 		// Allow a subclass to provide custom initialization of the reader,
 		// then proceed with actually loading the bean definitions.
+		// 对XmlBeanDefinitionReader进行设置，可以进行覆盖
 		initBeanDefinitionReader(beanDefinitionReader);
+		// 从Resource们，架子啊BeanDefinition们
 		loadBeanDefinitions(beanDefinitionReader);
 	}
 
@@ -119,12 +123,15 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 	 * @see #getResourcePatternResolver
 	 */
 	protected void loadBeanDefinitions(XmlBeanDefinitionReader reader) throws BeansException, IOException {
+		// 从配置文件Resource中，加载BeanDefinition们
 		Resource[] configResources = getConfigResources();
 		if (configResources != null) {
 			reader.loadBeanDefinitions(configResources);
 		}
+		// 从配置文件地址中，加载BeanDefinition们
 		String[] configLocations = getConfigLocations();
 		if (configLocations != null) {
+			// 依然是最初的方法
 			reader.loadBeanDefinitions(configLocations);
 		}
 	}

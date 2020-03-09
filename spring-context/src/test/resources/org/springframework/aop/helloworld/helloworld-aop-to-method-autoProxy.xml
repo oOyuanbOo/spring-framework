@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:aop="http://www.springframework.org/schema/aop"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+				http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop-2.0.xsd">
+	<bean id = "userServiceImpl" class="org.springframework.aop.helloworld.UserServceImpl"></bean>
+	<bean id = "orderServiceImpl" class="org.springframework.aop.helloworld.OrderServceImpl"></bean>
+
+	<!--定义两个advice-->
+	<bean id = "logArgsAdvice" class="org.springframework.aop.helloworld.LogArgsAdvice"></bean>
+	<bean id = "logResultAdvice" class="org.springframework.aop.helloworld.LogResultAdvice"></bean>
+
+	<!--RegexpMethodPointcutAdvisor 正则匹配方法-->
+	<!-- 点号，表示任意单个字符
+		 加号，表示前一个字符出现一次或者多次
+		　星号，表示前一个字符出现0次或者多次-->
+	<bean id="serviceAdvisor" class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
+		<!--配置拦截器-->
+		<property name="advice" ref="logArgsAdvice"></property>
+		<property name="pattern" value="createOrder"></property>
+	</bean>
+
+	<!--定义一个只拦截queryUser方法的advisor-->
+	<bean id="logCreateAdvisor" class="org.springframework.aop.support.NameMatchMethodPointcutAdvisor">
+		<!--advisor实例内部会有一个advice-->
+		<property name="advice" ref="logArgsAdvice"></property>
+		<!--只有下面这个方法会被拦截-->
+		<property name="mappedNames" value="createUser,createOrder"></property>
+	</bean>
+	<!--BeanNameAutoProxyCreator细粒度到方法，并且可以自动获取代理对象返回给getBean-->
+	<!--TODO: 下面的参数怎么可以这么灵活的组合，可以分开，或者单独配置一个advisor-->
+	<!--卡在pattern上了，下午看吧-->
+	<bean id="serviceProxy" class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
+		<!--配置拦截器，这里可以配置advice、advisor、interceptor，这里先介绍advice-->
+		<property name="interceptorNames">
+			<value>logCreateAdvisor</value>
+		</property>
+	</bean>
+
+</beans>

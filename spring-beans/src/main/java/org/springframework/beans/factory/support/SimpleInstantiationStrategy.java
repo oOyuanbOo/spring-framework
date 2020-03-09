@@ -59,17 +59,21 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 
 	@Override
 	public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner) {
+		// 直接使用反射实例化即可
 		// Don't override the class with CGLIB if no overrides.
 		if (!bd.hasMethodOverrides()) {
 			Constructor<?> constructorToUse;
 			synchronized (bd.constructorArgumentLock) {
+				// 获得构造方法
 				constructorToUse = (Constructor<?>) bd.resolvedConstructorOrFactoryMethod;
 				if (constructorToUse == null) {
 					final Class<?> clazz = bd.getBeanClass();
+					// 如果是接口，抛出初始化异常
 					if (clazz.isInterface()) {
 						throw new BeanInstantiationException(clazz, "Specified class is an interface");
 					}
 					try {
+						// 从clazz中，获得构造方法
 						if (System.getSecurityManager() != null) {
 							constructorToUse = AccessController.doPrivileged(
 									(PrivilegedExceptionAction<Constructor<?>>) clazz::getDeclaredConstructor);
@@ -77,6 +81,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 						else {
 							constructorToUse = clazz.getDeclaredConstructor();
 						}
+						// 标记resolvedConstructorOrFactoryMethod属性
 						bd.resolvedConstructorOrFactoryMethod = constructorToUse;
 					}
 					catch (Throwable ex) {
@@ -84,10 +89,12 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 					}
 				}
 			}
+			// 通过BeanUtils 直接使用构造器对象实例化Bean对象
 			return BeanUtils.instantiateClass(constructorToUse);
 		}
 		else {
 			// Must generate CGLIB subclass.
+			// 生成CGLIB创建的子类对象
 			return instantiateWithMethodInjection(bd, beanName, owner);
 		}
 	}
@@ -106,6 +113,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 	public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner,
 			final Constructor<?> ctor, Object... args) {
 
+		// 没有覆盖，直接使用反射实例化即可
 		if (!bd.hasMethodOverrides()) {
 			if (System.getSecurityManager() != null) {
 				// use own privileged to change accessibility (when security is on)
@@ -137,6 +145,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 	public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner,
 			@Nullable Object factoryBean, final Method factoryMethod, Object... args) {
 
+		// 设置Method可访问
 		try {
 			if (System.getSecurityManager() != null) {
 				AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
@@ -148,16 +157,21 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 				ReflectionUtils.makeAccessible(factoryMethod);
 			}
 
+			// 获得原Method对象
 			Method priorInvokedFactoryMethod = currentlyInvokedFactoryMethod.get();
 			try {
+				// 设置新的Method对象，到currentlyInvokedFactoryMethod中
 				currentlyInvokedFactoryMethod.set(factoryMethod);
+				// 创建bean对象
 				Object result = factoryMethod.invoke(factoryBean, args);
+				// 未创建，则创建NullBean对象
 				if (result == null) {
 					result = new NullBean();
 				}
 				return result;
 			}
 			finally {
+				// 设置老的Method对象，到currentlyInvokedFactoryMethod中
 				if (priorInvokedFactoryMethod != null) {
 					currentlyInvokedFactoryMethod.set(priorInvokedFactoryMethod);
 				}

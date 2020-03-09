@@ -23,6 +23,10 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * 将给定的InputStream作为一种资源的Resource实现类
+ */
+
+/**
  * {@link Resource} implementation for a given {@link InputStream}.
  * <p>Should only be used if no other specific {@code Resource} implementation
  * is applicable. In particular, prefer {@link ByteArrayResource} or any of the

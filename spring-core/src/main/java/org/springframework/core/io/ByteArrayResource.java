@@ -23,6 +23,9 @@ import java.util.Arrays;
 
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+/**
+ * 对字节数组提供的数据的封装。
+ */
 
 /**
  * {@link Resource} implementation for a given byte array.

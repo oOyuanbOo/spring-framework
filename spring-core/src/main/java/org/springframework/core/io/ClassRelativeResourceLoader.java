@@ -18,6 +18,9 @@ package org.springframework.core.io;
 
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+/**
+ *
+ */
 
 /**
  * {@link ResourceLoader} implementation that interprets plain resource paths

@@ -22,6 +22,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * 解析的过程还给标签指定了一个类
  * Representation of an import that has been processed during the parsing process.
  *
  * @author Juergen Hoeller

@@ -19,6 +19,9 @@ package org.springframework.beans.factory.xml;
 import org.w3c.dom.Document;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
+/**
+ * 从给定的Document对象中解析定义的BeanDefinition并将他们注册到注册表中
+ */
 
 /**
  * SPI for parsing an XML document that contains Spring bean definitions.

@@ -29,6 +29,10 @@ import org.springframework.lang.Nullable;
  * @see PropertySources
  * @see AbstractEnvironment
  */
+
+/**
+ * PropertyResolver的实现者，对一组PropertySources提供属性解析服务
+ */
 public class PropertySourcesPropertyResolver extends AbstractPropertyResolver {
 
 	@Nullable

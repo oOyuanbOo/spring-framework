@@ -897,6 +897,7 @@ public abstract class ClassUtils {
 	 * @return the user-defined class
 	 */
 	public static Class<?> getUserClass(Class<?> clazz) {
+		// 如果是CG_CLASS代理类，则获取其父类
 		if (clazz.getName().contains(CGLIB_CLASS_SEPARATOR)) {
 			Class<?> superclass = clazz.getSuperclass();
 			if (superclass != null && superclass != Object.class) {

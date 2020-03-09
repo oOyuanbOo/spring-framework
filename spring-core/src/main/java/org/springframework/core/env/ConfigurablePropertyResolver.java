@@ -28,6 +28,10 @@ import org.springframework.lang.Nullable;
  * @author Chris Beams
  * @since 3.1
  */
+
+/**
+ * 提供属性值类型转换所需要的ConversionService，这个转换器是线程安全的
+ */
 public interface ConfigurablePropertyResolver extends PropertyResolver {
 
 	/**

@@ -54,6 +54,9 @@ import org.springframework.web.util.WebUtils;
  * @author Arjen Poutsma
  * @author Rossen Stoyanchev
  * @since 3.1
+ * RequestMappingInfoHandlerMapping定义了使用RequestMappingInfo对象，而其子类RequestMappingHandlerMapping
+ * 使用了@RequestMapping注解，来生成RequestMappingInfo对象。这样如果未来我们自定义注解，或者其他方式来生成
+ * RequestMappingHandlerMapping对象，未尝不可
  */
 public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMethodMapping<RequestMappingInfo> {
 
@@ -112,8 +115,9 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 	protected void handleMatch(RequestMappingInfo info, String lookupPath, HttpServletRequest request) {
 		super.handleMatch(info, lookupPath, request);
 
-		String bestPattern;
-		Map<String, String> uriVariables;
+		// 获得bestPattern和uriVariables
+		String bestPattern;	// 最佳路径
+		Map<String, String> uriVariables;	// 路径上的变量集合
 
 		Set<String> patterns = info.getPatternsCondition().getPatterns();
 		if (patterns.isEmpty()) {
@@ -127,14 +131,17 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 
 		request.setAttribute(BEST_MATCHING_PATTERN_ATTRIBUTE, bestPattern);
 
+		// 设置MATRIX_VARIABLES_ATTRIBUTE属性，到请求中
 		if (isMatrixVariableContentAvailable()) {
 			Map<String, MultiValueMap<String, String>> matrixVars = extractMatrixVariables(request, uriVariables);
 			request.setAttribute(HandlerMapping.MATRIX_VARIABLES_ATTRIBUTE, matrixVars);
 		}
 
+		// 设置URI_TEMPLATE_VARIABLES_ATTRIBUTE属性，到请求中
 		Map<String, String> decodedUriVariables = getUrlPathHelper().decodePathVariables(request, uriVariables);
 		request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, decodedUriVariables);
 
+		// 设置PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE属性，到请求中
 		if (!info.getProducesCondition().getProducibleMediaTypes().isEmpty()) {
 			Set<MediaType> mediaTypes = info.getProducesCondition().getProducibleMediaTypes();
 			request.setAttribute(PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE, mediaTypes);
@@ -187,11 +194,13 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 	protected HandlerMethod handleNoMatch(
 			Set<RequestMappingInfo> infos, String lookupPath, HttpServletRequest request) throws ServletException {
 
+		// 1 创建PartialMatchHelper对象，解析可能的错误
 		PartialMatchHelper helper = new PartialMatchHelper(infos, request);
 		if (helper.isEmpty()) {
 			return null;
 		}
 
+		// 2 方法错误
 		if (helper.hasMethodsMismatch()) {
 			Set<String> methods = helper.getAllowedMethods();
 			if (HttpMethod.OPTIONS.matches(request.getMethod())) {
@@ -201,6 +210,7 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 			throw new HttpRequestMethodNotSupportedException(request.getMethod(), methods);
 		}
 
+		// 3 可消费的Content-Type错误
 		if (helper.hasConsumesMismatch()) {
 			Set<MediaType> mediaTypes = helper.getConsumableMediaTypes();
 			MediaType contentType = null;
@@ -215,11 +225,13 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 			throw new HttpMediaTypeNotSupportedException(contentType, new ArrayList<>(mediaTypes));
 		}
 
+		// 4 可生产的Content-Type错误
 		if (helper.hasProducesMismatch()) {
 			Set<MediaType> mediaTypes = helper.getProducibleMediaTypes();
 			throw new HttpMediaTypeNotAcceptableException(new ArrayList<>(mediaTypes));
 		}
 
+		// 5 参数错误
 		if (helper.hasParamsMismatch()) {
 			List<String[]> conditions = helper.getParamConditions();
 			throw new UnsatisfiedServletRequestParameterException(conditions, request.getParameterMap());

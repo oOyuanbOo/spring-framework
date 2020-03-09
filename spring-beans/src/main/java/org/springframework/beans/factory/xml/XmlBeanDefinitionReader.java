@@ -252,7 +252,12 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	public void setEntityResolver(@Nullable EntityResolver entityResolver) {
 		this.entityResolver = entityResolver;
 	}
-
+	/**
+	 * 这里是获取EntityResolver的过程
+	 * 我需要了解的仅仅是EntityResolver是个啥么，其他不重要
+	 * 因为要验证xml需要去网络下载DTO文件，这是个漫长的过程，可能会出错
+	 * EntityResolver就恶意提供一个寻找DTD声明的方法，比如将DTD文件放到项目某处，避免从网络下载
+	 */
 	/**
 	 * Return the EntityResolver to use, building a default resolver
 	 * if none specified.
@@ -323,6 +328,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 			currentResources = new HashSet<>(4);
 			this.resourcesCurrentlyBeingLoaded.set(currentResources);
 		}
+		// 避免一个Encoded在在加载时，还没加载完成，又加载自身，从而导致死循环
 		if (!currentResources.add(encodedResource)) {
 			throw new BeanDefinitionStoreException(
 					"Detected cyclic loading of " + encodedResource + " - check your import definitions!");
@@ -388,9 +394,11 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 */
 	protected int doLoadBeanDefinitions(InputSource inputSource, Resource resource)
 			throws BeanDefinitionStoreException {
-
+		// 这里是获取Document的核心方法
 		try {
+			// 获取XML Document实例
 			Document doc = doLoadDocument(inputSource, resource);
+			// 根据Document实例，注册Bean信息
 			int count = registerBeanDefinitions(doc, resource);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Loaded " + count + " bean definitions from " + resource);
@@ -432,8 +440,12 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 * @see DocumentLoader#loadDocument
 	 */
 	protected Document doLoadDocument(InputSource inputSource, Resource resource) throws Exception {
-		return this.documentLoader.loadDocument(inputSource, getEntityResolver(), this.errorHandler,
-				getValidationModeForResource(resource), isNamespaceAware());
+		return this.documentLoader.loadDocument(
+				inputSource,	// Resource资源
+				getEntityResolver(),  // 解析文件的解析器
+				this.errorHandler,	// 处理Document对象的过程的错误
+				getValidationModeForResource(resource), 	// 验证模式
+				isNamespaceAware());	// 命名空间支持
 	}
 
 	/**
@@ -445,6 +457,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 * @see #detectValidationMode
 	 */
 	protected int getValidationModeForResource(Resource resource) {
+		// 这个方法就是获取验证模式，不作详细了解，XSD xml schema definition 定义了xml的语法结构，用来校验xml文件
 		int validationModeToUse = getValidationMode();
 		if (validationModeToUse != VALIDATION_AUTO) {
 			return validationModeToUse;
@@ -509,9 +522,14 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 * @see BeanDefinitionDocumentReader#registerBeanDefinitions
 	 */
 	public int registerBeanDefinitions(Document doc, Resource resource) throws BeanDefinitionStoreException {
+		// 创建BeanDefinitionDocumentReader对象
 		BeanDefinitionDocumentReader documentReader = createBeanDefinitionDocumentReader();
+		// 获取已注册的BeanDefinition对象
 		int countBefore = getRegistry().getBeanDefinitionCount();
+		// 创建XmlReaderContext对象
+		// 注册BeanDefinition
 		documentReader.registerBeanDefinitions(doc, createReaderContext(resource));
+		// 计算新注册的BeanDefinition
 		return getRegistry().getBeanDefinitionCount() - countBefore;
 	}
 

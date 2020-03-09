@@ -27,6 +27,10 @@ import java.nio.channels.ReadableByteChannel;
 import org.springframework.lang.Nullable;
 
 /**
+ * 为Spring框架所有资源的抽象和访问接口，作为所有资源的统一抽象
+ */
+
+/**
  * Interface for a resource descriptor that abstracts from the actual
  * type of underlying resource, such as a file or class path resource.
  *
